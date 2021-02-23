@@ -1,5 +1,5 @@
 ---
-title: "Toronto Bike Parking Map (February 2021)"
+title: "Toronto Bike Rack Map (February 2021)"
 author: "Laura Cline"
 date: "23/02/2021"
 output: html_document
@@ -56,10 +56,29 @@ bike_data <-
 write_csv(bike_data, "bike_data.csv")
 ```
 
-# Static Map of Bike Parking Locations in Toronto (February 2021)
+# Static Map of Bike Rack Locations in Toronto (February 2021)
 
+```{r}
+# install.packages("ggmap")
+library(ggmap)
 
-# Interactive Map of Bike Parking Locations in Toronto (February 2021)
+# Grab our tile and add our bike rack data
+
+bbox <- c(left = -79.420390, bottom = 43.642658, right = -79.383354, top = 43.672557)
+
+toronto_stamen_map <- get_stamenmap(bbox, zoom = 14, maptype = "toner-lite")
+
+ggmap(toronto_stamen_map, maprange = FALSE) +
+  geom_point(data = bike_data,
+             aes(x = longitude, 
+                 y = latitude),
+             alpha = 0.3) +
+  labs(x = "Longitude",
+       y = "Latitude") +
+  theme_classic()
+```
+
+# Interactive Map of Bike Rack Locations in Toronto (February 2021)
 
 ```{r}
 # install.packages("leaflet")
@@ -69,6 +88,8 @@ leaflet(data = bike_data) %>%
   addTiles() %>%
   addMarkers(lng = bike_data$longitude,
              lat = bike_data$latitude,
-             popup = bike_data$street_address)
+             popup = bike_data$street_address,
+             label = ~as.character(bike_data$street_address))
 ```
 
+`popup` is what happens when you clock on the marker. In this example, it gives the address. The second is `label` which is what happens when you hover over the market. In this example, it also gives the street address. 
