@@ -1,0 +1,74 @@
+---
+title: "Toronto Bike Parking Map (February 2021)"
+author: "Laura Cline"
+date: "23/02/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The `leaflet` package is originally a JavaScript library of the same name that has been brought over to R. It makes it easy to make interactive maps. The basics are fairly similiar to the `ggmap` set-up, but there are many other new options. 
+
+In the same way as a graph in `ggplot` function, a map in the leaflet package begins with a call to the `leaflet()` function. This allows you to specify data, and a bunch of other options such as width and height. After this, we add 'layers' in the same way that we added them in `ggplot`. The first layer that we will add is a tile with the function `addTiles()`. In this case, the default is from OpenStreetMap. After that, we will add markets that show the location of each bike parking spot with `addMarkers()`. 
+
+## Load and Clean Data
+```{r}
+# This code is based on code from: https://open.toronto.ca/dataset/street-furniture-bicycle-parking/.
+# install.packages("opendatatoronto")
+
+library(opendatatoronto)
+library(tidyverse)
+
+raw_data <- read_csv("bike_parking.csv")
+raw_data
+```
+
+```{r}
+# Remove irrelevant dimensions 
+
+bike_data <- tibble(ward = raw_data$WARD,
+                    id = raw_data$ID,
+                    status = raw_data$STATUS,
+                    street_address = paste(raw_data$ADDRESSNUMBERTEXT, raw_data$ADDRESSSTREET),
+                    latitude = raw_data$LATITUDE,
+                    longitude = raw_data$LONGITUDE)
+```
+
+```{r}
+# Remove the temporary bike racks 
+
+bike_data <-
+  bike_data %>%
+  filter(status == "Existing") %>%
+  select(-status)
+
+bike_data <-
+  bike_data %>%
+  filter(ward == 11) %>%
+  select(-ward)
+```
+
+```{r}
+#Write dimension reduced data to a csv 
+
+write_csv(bike_data, "bike_data.csv")
+```
+
+# Static Map of Bike Parking Locations in Toronto (February 2021)
+
+
+# Interactive Map of Bike Parking Locations in Toronto (February 2021)
+
+```{r}
+# install.packages("leaflet")
+library(leaflet)
+
+leaflet(data = bike_data) %>%
+  addTiles() %>%
+  addMarkers(lng = bike_data$longitude,
+             lat = bike_data$latitude,
+             popup = bike_data$street_address)
+```
+
